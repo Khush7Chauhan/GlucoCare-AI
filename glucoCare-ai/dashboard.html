@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Glucocare AI | Dashboard</title>
+    
+    <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
+    
+    <style>
+        body { font-family: sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; line-height: 1.6; }
+        header { display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #eee; padding-bottom: 10px; margin-bottom: 20px; }
+        
+        /* Sections */
+        .section { margin-bottom: 30px; padding: 20px; border: 1px solid #ddd; border-radius: 8px; }
+        .hidden { display: none; }
+        
+        /* Progress Bar */
+        #progress-container { width: 100%; background: #f0f0f0; border-radius: 4px; overflow: hidden; height: 20px; margin-top: 10px; display: none; }
+        #progress-bar { width: 0%; height: 100%; background: #4CAF50; transition: width 0.3s; }
+        
+        /* Buttons */
+        button { cursor: pointer; padding: 10px 15px; background: #007bff; color: white; border: none; border-radius: 4px; }
+        button:hover { background: #0056b3; }
+        .view-btn { background: #6c757d; margin-left: 10px; padding: 5px 10px; font-size: 0.8em; }
+        
+        /* History List */
+        #history-list { list-style: none; padding: 0; }
+        #history-list li { background: #f9f9f9; padding: 10px; margin-bottom: 8px; border-radius: 4px; display: flex; justify-content: space-between; align-items: center; }
+    </style>
+</head>
+<body>
+
+    <header>
+        <h2>🩸 Glucocare AI</h2>
+        <div>
+            <span id="user-display">Loading...</span>
+            <button onclick="logout()">Logout</button>
+        </div>
+    </header>
+
+    <div class="section" id="upload-section">
+        <h3>New Health Checkup</h3>
+        <p>Upload a clear photo of your blood report.</p>
+        
+        <input type="file" id="report-file" accept="image/*" />
+        
+        <br/><br/>
+        <label>Advice Language: </label>
+        <select id="language-select">
+            <option value="English">English</option>
+            <option value="Hindi">Hindi</option>
+            <option value="Spanish">Spanish</option>
+        </select>
+        
+        <br/><br/>
+        <button id="analyze-btn">Analyze Report</button>
+        
+        <div id="progress-container">
+            <div id="progress-bar"></div>
+        </div>
+        <p id="status-text" style="color: #666; font-size: 0.9em;"></p>
+    </div>
+
+    <div class="section hidden" id="result-section">
+        <h3>🩺 AI Doctor's Analysis</h3>
+        <div id="gemini-output"></div>
+        <button onclick="window.location.reload()">Upload Another</button>
+    </div>
+
+    <div class="section" id="history-section">
+        <h3>📂 Your Report History</h3>
+        <ul id="history-list">
+            <li>Loading history...</li>
+        </ul>
+    </div>
+
+    <script type="module">
+        import { auth } from './js/firebase-config.js';
+        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { analyzeBloodReport } from './js/gemini.js';
+        import { saveReportToHistory, getUserHistory } from './js/db.js';
+
+        let currentUser = null;
+
+        // --- 1. AUTH STATE & HISTORY LOADING ---
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUser = user;
+                document.getElementById('user-display').innerText = user.email;
+                refreshHistory(user.uid);
+            } else {
+                window.location.href = "index.html"; // Kick out if not logged in
+            }
+        });
+
+        // Expose logout to window scope so HTML button can call it
+        window.logout = async () => {
+            await signOut(auth);
+            window.location.href = "index.html";
+        };
+
+        // --- 2. THE MAIN PIPELINE (OCR -> AI -> DB) ---
+        document.getElementById('analyze-btn').addEventListener('click', async () => {
+            const fileInput = document.getElementById('report-file');
+            const lang = document.getElementById('language-select').value;
+            const statusText = document.getElementById('status-text');
+            const progressBar = document.getElementById('progress-bar');
+            const progressContainer = document.getElementById('progress-container');
+            const resultSection = document.getElementById('result-section');
+
+            // Validation
+            if(fileInput.files.length === 0) return alert("Please select a file!");
+            const file = fileInput.files[0];
+
+            // Reset UI
+            progressContainer.style.display = 'block';
+            progressBar.style.width = '0%';
+            resultSection.classList.add('hidden');
+            
+            try {
+                // STEP A: Tesseract OCR
+                statusText.innerText = "Scanning image text (OCR)...";
+                progressBar.style.width = "30%";
+                
+                const worker = await Tesseract.createWorker('eng');
+                const ret = await worker.recognize(file);
+                const ocrText = ret.data.text;
+                await worker.terminate();
+
+                console.log("OCR Output:", ocrText);
+                if(!ocrText || ocrText.length < 5) throw new Error("Image too blurry or no text found.");
+
+                // STEP B: Gemini AI Analysis
+                statusText.innerText = "Consulting Glucocare AI...";
+                progressBar.style.width = "60%";
+                
+                const aiResponseHTML = await analyzeBloodReport(ocrText, lang);
+
+                // STEP C: Save to Firestore
+                statusText.innerText = "Saving to history...";
+                progressBar.style.width = "90%";
+                
+                await saveReportToHistory(currentUser.uid, {
+                    fileName: file.name,
+                    language: lang,
+                    ocrTextSnippet: ocrText.substring(0, 100), // Save a snippet for debug
+                    analysisResult: aiResponseHTML
+                });
+
+                // STEP D: Update UI
+                progressBar.style.width = "100%";
+                statusText.innerText = "Complete!";
+                
+                document.getElementById('gemini-output').innerHTML = aiResponseHTML;
+                resultSection.classList.remove('hidden');
+                
+                // Refresh history list to show new item
+                refreshHistory(currentUser.uid);
+
+            } catch (error) {
+                console.error(error);
+                statusText.innerText = "Error: " + error.message;
+                statusText.style.color = "red";
+                progressBar.style.backgroundColor = "red";
+            }
+        });
+
+        // --- 3. HELPER: LOAD HISTORY ---
+        async function refreshHistory(uid) {
+            const list = document.getElementById('history-list');
+            list.innerHTML = "<li>Loading...</li>";
+            
+            const history = await getUserHistory(uid);
+            list.innerHTML = ""; // Clear loader
+
+            if(history.length === 0) {
+                list.innerHTML = "<li>No past reports found.</li>";
+                return;
+            }
+
+            history.forEach(report => {
+                const li = document.createElement('li');
+                const dateStr = report.createdAt ? report.createdAt.toDate().toLocaleDateString() : "Just now";
+                
+                li.innerHTML = `
+                    <span><strong>${dateStr}</strong> - ${report.fileName}</span>
+                    <button class="view-btn">View Analysis</button>
+                `;
+                
+                // Click handler to re-open old report
+                li.querySelector('.view-btn').addEventListener('click', () => {
+                    document.getElementById('gemini-output').innerHTML = report.analysisResult;
+                    document.getElementById('result-section').classList.remove('hidden');
+                    document.getElementById('result-section').scrollIntoView({ behavior: 'smooth' });
+                });
+
+                list.appendChild(li);
+            });
+        }
+    </script>
+</body>
+</html>
