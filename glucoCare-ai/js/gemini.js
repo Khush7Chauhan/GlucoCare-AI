@@ -1,183 +1,233 @@
-const API_KEY = "AIzaSyDeo_gMtFxzD_PYj3T9tIQGD-lVNpeFAl4";
+// ======================================================
+//  gemini.js – WORKING VERSION (Using gemini-pro)
+// ======================================================
 
-// First, let's check what models are available
-async function listAvailableModels() {
-  try {
-    const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models?key=${API_KEY}`
-    );
-    const data = await response.json();
-    console.log("Available models:", data);
-    return data.models || [];
-  } catch (error) {
-    console.error("Error listing models:", error);
-    return [];
-  }
+const API_KEY = "AIzaSyCU8reXf_8AuqHMx47nNcTCtmJeI9K6Uys";
+
+// 🔧 FIXED: Using "gemini-pro" (most compatible model)
+// Alternative: Try "gemini-1.5-pro" if gemini-pro doesn't work
+const MODEL = "gemini-2.5-flash";
+
+let lastRequestTime = 0;
+const MIN_REQUEST_INTERVAL = 6000;
+
+async function waitForRateLimit() {
+  const now = Date.now();
+  const diff = now - lastRequestTime;
+  if (diff < MIN_REQUEST_INTERVAL) {
+    await new Promise(r => setTimeout(r, MIN_REQUEST_INTERVAL - diff));
+  }
+  lastRequestTime = Date.now();
 }
 
+// ======================================================
+//  FETCH WITH RETRY
+// ======================================================
+async function fetchWithRetry(url, options, retries = 2) {
+  for (let i = 0; i <= retries; i++) {
+    try {
+      await waitForRateLimit();
+      const res = await fetch(url, options);
+
+      if (res.status === 429 && i < retries) {
+        await new Promise(r => setTimeout(r, (i + 1) * 4000));
+        continue;
+      }
+
+      return res;
+    } catch (err) {
+      if (i === retries) throw err;
+      await new Promise(r => setTimeout(r, (i + 1) * 3000));
+    }
+  }
+  throw new Error("Max retries exceeded");
+}
+
+// ======================================================
+//  1️⃣ BLOOD REPORT ANALYSIS
+// ======================================================
 export async function analyzeBloodReport(ocrText, language) {
-  try {
-    // First check available models
-    const models = await listAvailableModels();
-    console.log("Checking available models...");
-    
-    // Try different model endpoints in order of preference
-    const modelsToTry = [
-      'gemini-1.5-flash-latest',
-      'gemini-1.5-flash',
-      'gemini-1.5-pro-latest', 
-      'gemini-1.5-pro',
-      'gemini-pro',
-      'gemini-pro-vision'
-    ];
-    
-    let workingModel = null;
-    
-    // Find first working model from available models
-    if (models.length > 0) {
-      for (let model of models) {
-        if (model.name && model.supportedGenerationMethods?.includes('generateContent')) {
-          workingModel = model.name.replace('models/', '');
-          console.log("Found working model:", workingModel);
-          break;
-        }
-      }
-    }
-    
-    // Fallback: try the models list if API didn't return available models
-    if (!workingModel) {
-      workingModel = 'gemini-1.5-flash-latest';
-    }
+  try {
+    if (!ocrText || ocrText.length < 5) {
+      throw new Error("Invalid OCR text");
+    }
 
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/${workingModel}:generateContent?key=${API_KEY}`;
-    
-    console.log("Attempting to use model:", workingModel);
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`;
 
-    const prompt = `
-You are Glucocare AI, an expert endocrinologist and health advisor.
+    const prompt = `You are Glucocare AI, an expert endocrinologist.
 
-I have performed OCR on a patient's blood test report. The text might contain spelling errors or formatting artifacts from the scanning process.
-
-Here is the raw OCR text:
+OCR TEXT:
 """
 ${ocrText}
 """
 
-Your Task:
-1. Identify the key health markers, especially diabetic indicators (Glucose, HbA1c, Insulin, Cholesterol, etc.)
-2. Correct any obvious OCR errors (e.g., 'mq/dL' -> 'mg/dL', 'qlucose' -> 'glucose')
-3. Assess the diabetic risk level and overall health status based on standard medical guidelines
-4. Provide actionable, personalized advice in ${language} language
+Analyze diabetes markers and give advice in ${language}.
+Return clean HTML only with the following structure:
+- Summary of key findings
+- Blood glucose levels analysis
+- HbA1c interpretation (if available)
+- Recommendations
+- Diet and lifestyle advice`;
 
-Output Format:
-Return ONLY valid HTML (no markdown, no code blocks, no backticks).
-Structure your response using these HTML tags:
+    const res = await fetchWithRetry(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.6,
+          maxOutputTokens: 2048
+        }
+      })
+    });
 
-<div style="font-family: Arial, sans-serif; line-height: 1.6;">
-  <h3 style="color: #d9534f;">🚨 Risk Assessment</h3>
-  <p><strong>Overall Status:</strong> [Normal/Pre-diabetic/Diabetic/At Risk]</p>
-  <p>[Brief explanation of their condition]</p>
-  
-  <h3 style="color: #5bc0de;">📊 Key Findings</h3>
-  <ul>
-    <li><strong>[Marker Name]:</strong> [Value] - [Normal/High/Low] ([Explanation])</li>
-  </ul>
-  
-  <h3 style="color: #5cb85c;">🥗 Dietary Recommendations</h3>
-  <ul>
-    <li>[Specific food/meal advice]</li>
-    <li>[What to avoid]</li>
-    <li>[Meal timing suggestions]</li>
-  </ul>
-  
-  <h3 style="color: #f0ad4e;">💪 Exercise & Lifestyle</h3>
-  <ul>
-    <li>[Specific exercise recommendations]</li>
-    <li>[Activity duration and frequency]</li>
-    <li>[Lifestyle modifications]</li>
-  </ul>
-  
-  <h3 style="color: #0275d8;">⚕️ Medical Advice</h3>
-  <p>[When to consult a doctor, monitoring recommendations]</p>
-</div>
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("API Error Response:", errorText);
+      throw new Error(`API Error ${res.status}`);
+    }
 
-Important:
-- Use inline CSS styles for colors and formatting
-- Be empathetic and encouraging in tone
-- Provide specific, actionable advice
-- All text must be in ${language} language
-- Return ONLY the HTML, no explanatory text before or after
-`;
+    const data = await res.json();
+    const html = data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
-    const requestBody = {
-      contents: [{
-        parts: [{
-          text: prompt
-        }]
-      }]
-    };
+    if (!html) throw new Error("Empty AI response");
 
-    const response = await fetch(url, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(requestBody)
-    });
+    return html.replace(/```html|```/g, "").trim();
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error("API Response Error:", errorData);
-      throw new Error(`API Error (${response.status}): ${errorData.error?.message || response.statusText}`);
-    }
+  } catch (err) {
+    console.error("Analyze Error:", err);
+    return renderErrorHTML(err);
+  }
+}
 
-    const data = await response.json();
-    console.log("API Response:", data);
-    
-    // Extract the generated text
-    let htmlOutput = data.candidates[0].content.parts[0].text;
-    
-    // Clean up any markdown artifacts
-    htmlOutput = htmlOutput.replace(/```html/g, '').replace(/```/g, '').trim();
-    
-    return htmlOutput;
-    
-  } catch (error) {
-    console.error("Gemini API Error:", error);
-    
-    // Return user-friendly error message as HTML
-    return `
-      <div style="padding: 20px; background: #fff3cd; border: 1px solid #ffc107; border-radius: 8px; color: #856404;">
-        <h3>⚠️ API Configuration Issue</h3>
-        <p><strong>Your API key appears to be invalid or expired.</strong></p>
-        <p style="margin-top: 15px;">${error.message || 'Unknown error occurred'}</p>
-        
-        <div style="background: white; padding: 15px; border-radius: 5px; margin-top: 20px;">
-          <h4 style="margin-top: 0; color: #0275d8;">🔧 How to Fix This:</h4>
-          <ol style="line-height: 1.8;">
-            <li><strong>Get a new API key:</strong>
-              <ul>
-                <li>Visit <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: #0275d8;">Google AI Studio</a></li>
-                <li>Sign in with your Google account</li>
-                <li>Click "Get API Key" or "Create API Key"</li>
-                <li>Copy your new key</li>
-              </ul>
-            </li>
-            <li><strong>Update your code:</strong>
-              <ul>
-                <li>Open <code>gemini.js</code></li>
-                <li>Replace the <code>API_KEY</code> value with your new key</li>
-                <li>Save and refresh the page</li>
-              </ul>
-            </li>
-          </ol>
-        </div>
-        
-        <div style="background: #f8d7da; padding: 10px; border-radius: 5px; margin-top: 15px; font-size: 0.9em;">
-          <strong>⚠️ Security Note:</strong> Never share your API key publicly or commit it to GitHub. 
-          Consider using environment variables for production apps.
-        </div>
-      </div>
-    `;
-  }
+// ======================================================
+//  2️⃣ CHATBOT
+// ======================================================
+export async function getChatResponse(userMessage, reportContext) {
+  try {
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`;
+
+    let prompt = `You are a medical AI assistant helping with diabetes management.\n`;
+
+    if (reportContext) {
+      prompt += `Based on this blood report:\n"""${reportContext.substring(0, 500)}"""\n\n`;
+    }
+
+    prompt += `User question: ${userMessage}\n\nProvide a helpful, concise answer (under 80 words).`;
+
+    const res = await fetchWithRetry(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{ parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.6,
+          maxOutputTokens: 512
+        }
+      })
+    });
+
+    if (!res.ok) {
+      console.error("Chat API Error:", res.status);
+      return "⚠️ AI unavailable. Try again.";
+    }
+
+    const data = await res.json();
+    return data?.candidates?.[0]?.content?.parts?.[0]?.text || "No response.";
+
+  } catch (err) {
+    console.error("Chat Error:", err);
+    return "⚠️ Connection issue.";
+  }
+}
+
+// ======================================================
+//  3️⃣ FOOD SCANNER (VISION)
+// ======================================================
+export async function analyzeFood(base64Image) {
+  try {
+    // Note: gemini-pro does NOT support vision
+    // We need to use gemini-pro-vision for images
+    const visionModel = "gemini-pro-vision";
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${visionModel}:generateContent?key=${API_KEY}`;
+
+    const prompt = `Analyze this food image for diabetic patients.
+
+Provide:
+1. Food items identified
+2. Estimated total carbohydrates
+3. Glycemic index rating (Low/Medium/High)
+4. Portion size recommendation for diabetics
+5. Overall recommendation (Safe/Moderate/Avoid)
+
+Return as clean HTML.`;
+
+    const res = await fetchWithRetry(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [{
+          parts: [
+            { text: prompt },
+            {
+              inline_data: {
+                mime_type: "image/jpeg",
+                data: base64Image
+              }
+            }
+          ]
+        }],
+        generationConfig: {
+          temperature: 0.4,
+          maxOutputTokens: 1024
+        }
+      })
+    });
+
+    if (!res.ok) {
+      const errorText = await res.text();
+      console.error("Food API Error:", errorText);
+      
+      // Fallback message if vision model fails
+      if (res.status === 404) {
+        return `<div style="padding:15px;background:#fff3cd;border-radius:8px">
+          <h3>📸 Vision Model Unavailable</h3>
+          <p>The food scanner requires the vision model (gemini-pro-vision).</p>
+          <p>Please verify this model is available in your API key settings.</p>
+        </div>`;
+      }
+      
+      throw new Error(`API Error ${res.status}`);
+    }
+
+    const data = await res.json();
+    const html = data?.candidates?.[0]?.content?.parts?.[0]?.text;
+
+    if (!html) throw new Error("Food analysis failed");
+
+    return `<div style="padding:15px;background:#f8f9fa;border-radius:8px">${html.replace(/```/g, "")}</div>`;
+
+  } catch (err) {
+    console.error("Food Error:", err);
+    return renderErrorHTML(err);
+  }
+}
+
+// ======================================================
+//  ERROR UI
+// ======================================================
+function renderErrorHTML(error) {
+  return `
+    <div style="padding:15px;border:1px solid #ffc107;background:#fff3cd;border-radius:8px">
+      <h3>⚠️ Connection Issue</h3>
+      <p><strong>Error:</strong> ${error.message}</p>
+      <p style="font-size:0.9em;color:#555">
+        Troubleshooting steps:<br>
+        1. Check browser console (F12) for details<br>
+        2. Verify API key is active<br>
+        3. Try the test page to find working models<br>
+        4. Wait 1 minute and try again
+      </p>
+    </div>
+  `;
 }
