@@ -4,88 +4,293 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Glucocare AI - Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
+        
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+        * {
+            box-sizing: border-box;
+        }
+
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Poppins', sans-serif;
             display: flex;
             justify-content: center;
             align-items: center;
             height: 100vh;
-            background-color: #f4f7f6;
+            background-color: #3C5BBE;
             margin: 0;
+            overflow: hidden;
         }
-        .login-container {
+
+        
+        .login-card {
             background: white;
-            padding: 2rem;
-            border-radius: 10px;
-            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
-            width: 350px;
-            text-align: center;
+            display: flex;
+            width: 1000px;
+            height: 600px;
+            border-radius: 20px;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.2);
+            overflow: hidden;
         }
-        h1 { color: #333; margin-bottom: 0.5rem; }
-        p { color: #666; margin-bottom: 1.5rem; }
+
         
-        input {
+        .illustration-side {
+            flex: 1;
+            background-color: #ffffff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .illustration-side img {
             width: 100%;
-            padding: 10px;
-            margin: 8px 0;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        
+        .form-side {
+            flex: 1;
+            padding: 40px 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .header-text {
+            margin-bottom: 25px;
+        }
+        .header-text p {
+            margin: 0;
+            color: #666;
+            font-size: 0.9rem;
+        }
+        .header-text h2 {
+            margin: 5px 0 0;
+            color: #3C5BBE;
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+
+        
+        .social-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .btn-social {
+            background: white;
             border: 1px solid #ddd;
-            border-radius: 5px;
-            box-sizing: border-box; /* Ensures padding doesn't widen width */
-        }
-        
-        button {
-            width: 100%;
+            border-radius: 8px;
             padding: 10px;
-            margin-top: 10px;
-            border: none;
-            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
             cursor: pointer;
-            font-weight: bold;
-            transition: background 0.3s;
+            font-size: 0.9rem;
+            color: #555;
+            transition: 0.2s;
+            width: 100%;
         }
-        
-        .btn-primary { background-color: #007bff; color: white; }
-        .btn-primary:hover { background-color: #0056b3; }
-        
-        .btn-secondary { background-color: #6c757d; color: white; }
-        .btn-secondary:hover { background-color: #5a6268; }
-        
-        .btn-google { 
-            background-color: #db4437; 
-            color: white; 
-            margin-top: 15px; 
+
+        .btn-social:hover {
+            background-color: #f9f9f9;
+            border-color: #ccc;
         }
-        
+
+        .btn-social i { font-size: 1.1rem; }
+        .google i { color: #DB4437; }
+        .facebook i { color: #4267B2; }
+
+        .divider {
+            display: flex;
+            align-items: center;
+            margin: 15px 0 25px 0;
+            color: #ccc;
+            font-size: 0.8rem;
+        }
+        .divider::before, .divider::after {
+            content: "";
+            flex: 1;
+            border-top: 1px solid #eee;
+        }
+        .divider span { padding: 0 10px; }
+
+        .input-group {
+            margin-bottom: 15px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 0.85rem;
+            color: #777;
+            margin-bottom: 6px;
+        }
+
+        .input-wrapper {
+            position: relative;
+        }
+
+        .input-wrapper input {
+            width: 100%;
+            padding: 12px 12px 12px 40px;
+            border: 1px solid #eee;
+            background-color: #f9fafb;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            outline: none;
+            transition: 0.3s;
+        }
+
+        .input-wrapper input:focus {
+            background-color: #fff;
+            border-color: #3C5BBE;
+            box-shadow: 0 0 0 3px rgba(60, 91, 190, 0.1);
+        }
+
+        .input-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #aaa;
+            font-size: 0.9rem;
+        }
+
+        .actions {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.85rem;
+            margin-bottom: 25px;
+            color: #666;
+        }
+        .actions input { margin-right: 5px; }
+        .forgot-pass { color: #3C5BBE; text-decoration: none; font-weight: 500; }
+
+        #login-btn {
+            width: 100%;
+            background-color: #3C5BBE;
+            color: white;
+            padding: 14px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(60, 91, 190, 0.3);
+            transition: 0.3s;
+        }
+
+        #login-btn:hover { background-color: #2a4596; transform: translateY(-1px); }
+        #login-btn:disabled { background-color: #ccc; cursor: not-allowed; }
+
+        .signup-area {
+            text-align: center;
+            font-size: 0.9rem;
+            color: #888;
+            margin-top: 20px;
+        }
+
+        #signup-btn {
+            background: none;
+            border: none;
+            color: #3C5BBE;
+            font-weight: 600;
+            font-size: 0.9rem;
+            cursor: pointer;
+            padding: 0;
+            text-decoration: none;
+            font-family: 'Poppins', sans-serif;
+        }
+        #signup-btn:hover { text-decoration: underline; }
+
         .error-msg {
-            color: red;
-            font-size: 0.9em;
+            color: #d9534f;
+            font-size: 0.85rem;
+            text-align: center;
             margin-top: 10px;
             display: none;
+            background: #fff5f5;
+            padding: 8px;
+            border-radius: 5px;
+            border: 1px solid #ffdcdc;
+        }
+        @media (max-width: 900px) {
+            .login-card { width: 95%; height: auto; flex-direction: column; }
+            .illustration-side { height: 250px; }
+            .form-side { padding: 30px; }
         }
     </style>
 </head>
 <body>
 
-    <div class="login-container">
-        <h1>🩸 Glucocare AI</h1>
-        <p>Your Personal AI Health Assistant</p>
+    <div class="login-card">
         
-        <input type="email" id="email" placeholder="Email Address" required />
-        <input type="password" id="password" placeholder="Password" required />
-        
-        <button id="login-btn" class="btn-primary">Login</button>
-        <button id="signup-btn" class="btn-secondary">Create Account</button>
-        
-        <div style="display: flex; align-items: center; margin: 15px 0;">
-            <hr style="flex-grow: 1; border: 0; border-top: 1px solid #ccc;">
-            <span style="padding: 0 10px; color: #888; font-size: 0.8em;">OR</span>
-            <hr style="flex-grow: 1; border: 0; border-top: 1px solid #ccc;">
+        <div class="illustration-side">
+            <img src="WhatsApp Image 2026-01-20 at 22.28.31.jpeg" alt="Glucocare Illustration">
         </div>
 
-        <button id="google-btn" class="btn-google">Sign in with Google</button>
-        
-        <div id="error-message" class="error-msg"></div>
+        <div class="form-side">
+            <div class="header-text">
+                <p>Welcome to</p>
+                <h2>Glucocare AI</h2>
+            </div>
+
+            <div class="social-buttons">
+                <button id="google-btn" class="btn-social google">
+                    <i class="fab fa-google"></i> Login with Google
+                </button>
+                <button class="btn-social facebook">
+                    <i class="fab fa-facebook-f"></i> Login with Facebook
+                </button>
+            </div>
+
+            <div class="divider">
+                <span>OR</span>
+            </div>
+
+            <div class="input-group">
+                <label>Email</label>
+                <div class="input-wrapper">
+                    <i class="fa-regular fa-envelope input-icon"></i>
+                    <input type="email" id="email" placeholder="example@gmail.com" required />
+                </div>
+            </div>
+
+            <div class="input-group">
+                <label>Password</label>
+                <div class="input-wrapper">
+                    <i class="fa-solid fa-key input-icon"></i>
+                    <input type="password" id="password" placeholder="********" required />
+                    <i class="fa-regular fa-eye" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); color:#ccc; cursor:pointer;"></i>
+                </div>
+            </div>
+
+            <div class="actions">
+                <label style="display:flex; align-items:center; cursor:pointer;">
+                    <input type="checkbox"> Remember me
+                </label>
+                <a href="#" class="forgot-pass">Forgot Password?</a>
+            </div>
+
+            <button id="login-btn">Login</button>
+            
+            <div class="signup-area">
+                Don't have an account? 
+                <button id="signup-btn" type="button">Register</button>
+            </div>
+
+            <div id="error-message" class="error-msg"></div>
+        </div>
     </div>
 
     <script type="module" src="./js/app.js"></script>

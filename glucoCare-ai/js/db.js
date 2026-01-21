@@ -8,15 +8,13 @@ import {
     serverTimestamp 
 } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-// --- SAVE REPORT ---
 export async function saveReportToHistory(userId, reportData) {
     try {
-        // We store reports in a sub-collection: users/{userId}/reports
         const reportsRef = collection(db, "users", userId, "reports");
         
         await addDoc(reportsRef, {
             ...reportData,
-            createdAt: serverTimestamp() // Let server set the time
+            createdAt: serverTimestamp() 
         });
         
         console.log("Report saved successfully!");
@@ -27,11 +25,8 @@ export async function saveReportToHistory(userId, reportData) {
     }
 }
 
-// --- GET HISTORY ---
 export async function getUserHistory(userId) {
     const reportsRef = collection(db, "users", userId, "reports");
-    
-    // Order by newest first
     const q = query(reportsRef, orderBy("createdAt", "desc"));
     
     const querySnapshot = await getDocs(q);

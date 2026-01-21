@@ -1,10 +1,9 @@
-// You might need to use a script tag in HTML for AWS SDK if ESM imports are tricky
-// <script src="https://sdk.amazonaws.com/js/aws-sdk-2.1001.0.min.js"></script>
+
 
 function uploadFileToS3(file) {
   AWS.config.update({
-    accessKeyId: 'AKIXXXXXXXXXXXXXX',
-    secretAccessKey: 'Fm3VOcc0BwFXXXXXXXXXXXXXXXXXXX',
+    accessKeyId: 'AKIAZF6XXXXXXXXXX',
+    secretAccessKey: 'Fm3VOcc0BwFTr82NmvXXXXXXXXXXXXXX',
     region: 'ap-south-1'
 
   });
@@ -13,7 +12,7 @@ function uploadFileToS3(file) {
 
   const params = {
     Bucket: 'glucocare-bucket',
-    Key: `reports/${Date.now()}_${file.name}`, // Unique filename
+    Key: `reports/${Date.now()}_${file.name}`, 
     Body: file,
     ContentType: file.type
   };
@@ -23,7 +22,7 @@ function uploadFileToS3(file) {
       if (err) {
         reject(err);
       } else {
-        resolve(data.Location); // Returns the file URL
+        resolve(data.Location); 
       }
     });
   });

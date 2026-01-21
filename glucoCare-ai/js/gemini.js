@@ -1,16 +1,7 @@
-// ======================================================
-//  gemini.js – GEMINI 2.5 FLASH VERSION
-// ======================================================
 
-// YOUR API KEY
-const API_KEY = "AIzaSyAx6_lUpbH4h5aXXXXXXXXXXXXXXXXX";
-
-// 🔧 EXACT MODEL NAME FROM YOUR SCREENSHOT
+const API_KEY = "AIzaSyCwRbcqmXXXXXXXXXXXXXXX";
 const MODEL_NAME = "gemini-2.5-flash"; 
 
-// ======================================================
-//  1️⃣ BLOOD REPORT ANALYSIS
-// ======================================================
 export async function analyzeBloodReport(ocrText, language) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${API_KEY}`;
 
@@ -49,7 +40,6 @@ export async function analyzeBloodReport(ocrText, language) {
 
     if (!response.ok) {
       const errorData = await response.json();
-      // If 2.5 flash is in a specific beta, the error might be helpful
       throw new Error(errorData.error.message);
     }
 
@@ -64,9 +54,6 @@ export async function analyzeBloodReport(ocrText, language) {
   }
 }
 
-// ======================================================
-//  2️⃣ CHATBOT LOGIC
-// ======================================================
 export async function getChatResponse(userMessage, reportContext) {
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${API_KEY}`;
 
@@ -100,11 +87,7 @@ export async function getChatResponse(userMessage, reportContext) {
   }
 }
 
-// ======================================================
-//  3️⃣ FOOD SCANNER (VISION)
-// ======================================================
 export async function analyzeFood(base64Image) {
-  // Using gemini-2.5-flash for vision as well
   const url = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL_NAME}:generateContent?key=${API_KEY}`;
 
   const prompt = `
@@ -124,7 +107,6 @@ export async function analyzeFood(base64Image) {
     </div>
   `;
 
-  // Payload for Multimodal Request (Text + Image)
   const payload = {
     contents: [{
       parts: [

@@ -8,195 +8,527 @@
     <script src='https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js'></script>
     
     <style>
-        /* --- GLOBAL RESET & LAYOUT --- */
-        * { box-sizing: border-box; }
-        body { font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; margin: 0; padding: 0; height: 100vh; display: flex; color: #333; background-color: #f4f6f8; }
         
-        /* --- SIDEBAR STYLES --- */
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap');
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        
+        body { 
+            font-family: 'Poppins', sans-serif; 
+            background-color: #f4f7fe;
+            height: 100vh; 
+            display: flex; 
+            color: #2b3674;
+            overflow: hidden;
+        }
+        
+        
         .sidebar {
             width: 280px;
-            background-color: #ffffff;
-            border-right: 1px solid #e1e4e8;
+            background-color: #3a86ff;
+            color: white;
             display: flex;
             flex-direction: column;
+            padding: 30px 20px;
             flex-shrink: 0;
-            height: 100%;
+            transition: all 0.3s ease;
         }
 
         .brand {
-            padding: 20px 25px;
-            border-bottom: 1px solid #f0f0f0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 50px;
+            padding-left: 10px;
         }
-        .brand h2 { margin: 0; color: #d63384; font-size: 1.4rem; letter-spacing: -0.5px; }
         
-        /* Sidebar Content Area */
-        .sidebar-content {
-            padding: 20px;
-            overflow-y: auto;
-            flex-grow: 1;
+        .brand-icon {
+            font-size: 24px;
+        }
+        
+        .brand h2 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+        }
+
+        .menu-list {
+            list-style: none;
             display: flex;
             flex-direction: column;
+            gap: 10px;
+        }
+
+        .menu-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 14px 20px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1rem;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.7);
+        }
+
+        .menu-item:hover {
+            color: white;
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .menu-item.active {
+            background: rgba(255, 255, 255, 0.15);
+            color: white;
+            font-weight: 600;
+            border-right: 4px solid white;
+        }
+
+        .logout-wrapper {
+            margin-top: auto;
+        }
+
+        
+        .user-info-sidebar {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            margin-top: auto;
+        }
+        .user-info-sidebar p {
+            font-size: 0.85rem;
+            color: rgba(255, 255, 255, 0.8);
+            margin-bottom: 8px;
+            word-break: break-word;
+        }
+
+        
+        .food-scanner-sidebar {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+        .food-scanner-sidebar h3 {
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            color: white;
+        }
+        .food-scanner-sidebar input[type="file"] {
+            width: 100%;
+            padding: 8px;
+            margin-bottom: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            color: white;
+            font-size: 0.75rem;
+        }
+        .food-scanner-sidebar button {
+            width: 100%;
+            padding: 10px;
+            background: #ff9800;
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.85rem;
+        }
+        #food-result {
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            font-size: 0.8rem;
+            display: none;
+        }
+
+        
+        .history-sidebar {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+        .history-sidebar h3 {
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            color: white;
+        }
+        #history-list {
+            list-style: none;
+            padding: 0;
+        }
+        .history-item {
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.1);
+            margin-bottom: 8px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: background 0.2s;
+        }
+        .history-item:hover {
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .main-content {
+            flex-grow: 1;
+            padding: 30px 40px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 30px;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .welcome-text h1 {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: #2b3674;
+        }
+        .welcome-text span { font-size: 1.5rem; }
+
+        .profile-actions {
+            display: flex;
+            align-items: center;
             gap: 20px;
         }
-
-        /* Sidebar Cards (User & Food Scanner) */
-        .sidebar-card {
-            background: #f8f9fa;
-            padding: 15px;
-            border-radius: 8px;
-            border: 1px solid #eaeaea;
-        }
-        .sidebar-card h3 { margin-top: 0; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; color: #888; margin-bottom: 10px; }
-
-        /* User Info */
-        .user-info p { margin: 0 0 10px 0; font-weight: 600; color: #333; font-size: 0.95rem; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
-        .logout-btn { background-color: #fff; border: 1px solid #dc3545; color: #dc3545; width: 100%; padding: 8px; border-radius: 6px; font-size: 0.85rem; cursor: pointer; transition: 0.2s; }
-        .logout-btn:hover { background-color: #dc3545; color: white; }
-
-        /* --- PROFESSIONAL HISTORY LIST --- */
-        #history-section h3 { font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.5px; color: #888; margin-bottom: 10px; margin-top: 0; }
-        
-        #history-list { list-style: none; padding: 0; margin: 0; }
-        
-        /* The Item Container */
-        .history-item {
-            display: flex; /* Flex is critical here */
-            align-items: center;
-            padding: 12px 10px;
-            border-bottom: 1px solid #f1f1f1;
-            cursor: pointer;
-            transition: background-color 0.2s;
-            border-radius: 6px;
-        }
-        .history-item:hover { background-color: #f0f4ff; }
-        
-        /* Icon (Left) */
-        .file-icon {
-            width: 32px;
-            height: 32px;
-            background-color: #e7f1ff;
-            color: #0d6efd;
+        .icon-btn {
+            background: white;
+            border: none;
+            width: 40px;
+            height: 40px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
-            margin-right: 12px;
-            flex-shrink: 0;
-        }
-        
-        /* Text Info (Middle) */
-        .file-info {
-            flex-grow: 1;
-            overflow: hidden; 
-        }
-        .file-name {
-            font-size: 0.9rem;
-            font-weight: 600;
-            color: #333;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis; 
-            display: block;
-        }
-        .file-date {
-            font-size: 0.75rem;
-            color: #888;
-            margin-top: 2px;
-            display: block;
-        }
-
-        /* Action Arrow (Right) */
-        .action-icon {
-            color: #ccc;
-            font-size: 18px;
-            margin-left: 8px;
-        }
-        .history-item:hover .action-icon { color: #0d6efd; }
-
-        /* --- NEW: Show More Button --- */
-        .show-more-container {
-            margin-top: 5px;
-            text-align: center;
-        }
-        .show-more-btn {
-            background: none;
-            border: none;
-            color: #666;
-            font-size: 0.85rem;
             cursor: pointer;
-            width: 100%;
-            padding: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            font-size: 1.2rem;
+        }
+        .profile-pic {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            background: #ddd;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 5px;
-            transition: background 0.2s;
-            border-radius: 6px;
+            font-weight: 600;
+            color: #555;
+            border: 2px solid white;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            overflow: hidden;
         }
-        .show-more-btn:hover {
-            background-color: #f0f0f0;
-            color: #333;
-        }
-
-
-        /* Food Scanner (Compact) */
-        #food-result { font-size: 0.9em; margin-top: 10px; }
-
-        /* --- MAIN CONTENT STYLES --- */
-        .main-content {
-            flex-grow: 1;
-            padding: 40px;
-            overflow-y: auto;
-            background-color: #f4f6f8;
+        .profile-pic img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
 
-        .main-container { max-width: 850px; margin: 0 auto; }
-
-        /* Sections */
-        .section { margin-bottom: 30px; padding: 30px; border-radius: 12px; background: white; box-shadow: 0 2px 10px rgba(0,0,0,0.02); border: 1px solid #eaeaea; }
-        .hidden { display: none; }
-
-        /* Inputs & Buttons */
-        input[type="file"] { width: 100%; margin-bottom: 15px; padding: 10px; background: #fafafa; border: 1px dashed #ccc; border-radius: 6px; }
-        select { padding: 10px; border-radius: 6px; border: 1px solid #ddd; width: 100%; margin-bottom: 20px; background-color: #fff; }
         
-        button { 
-            cursor: pointer; padding: 12px 20px; background: #0d6efd; color: white; 
-            border: none; border-radius: 8px; font-weight: 600; font-size: 1rem; transition: 0.2s; 
-            box-shadow: 0 2px 4px rgba(13, 110, 253, 0.2);
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 25px;
         }
-        button:hover { background: #0b5ed7; transform: translateY(-1px); }
-        
-        /* Progress Bar */
-        #progress-container { width: 100%; background: #f0f0f0; border-radius: 10px; overflow: hidden; height: 8px; margin-top: 20px; display: none; }
-        #progress-bar { width: 0%; height: 100%; background: #28a745; transition: width 0.3s; }
-        #status-text { font-size: 0.9rem; color: #666; margin-top: 8px; font-style: italic; text-align: center; }
 
-        /* Chat Window */
-        #chat-window {
-            height: 400px;
-            overflow-y: auto;
-            border: 1px solid #eee;
-            padding: 20px;
-            background: #fff;
-            border-radius: 12px;
-            margin-bottom: 20px;
+        .stat-card {
+            background: white;
+            padding: 20px 25px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.02);
+            transition: transform 0.2s;
+        }
+        .stat-card:hover { transform: translateY(-3px); }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+        
+        .bg-blue-light { background: #EBF0FF; color: #4318FF; }
+        .bg-green-light { background: #E6F7F0; color: #05CD99; }
+        .bg-orange-light { background: #FFF7E6; color: #FFA800; }
+
+        .stat-info h3 {
+            font-size: 1.4rem;
+            font-weight: 700;
+            margin-bottom: 2px;
+            color: #2b3674;
+        }
+        .stat-info p {
+            font-size: 0.9rem;
+            color: #a3aed0;
+            font-weight: 500;
+        }
+
+        
+        .upload-container {
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.02);
+        }
+
+        .section-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 25px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #2b3674;
+        }
+
+        .upload-area {
+            background-color: #F4F7FE;
+            border: 2px dashed #4318FF;
+            border-radius: 20px;
+            min-height: 350px;
             display: flex;
             flex-direction: column;
-            gap: 15px;
-            box-shadow: inset 0 0 10px rgba(0,0,0,0.01);
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            position: relative;
+            transition: background 0.3s;
+            padding: 20px;
         }
-        .bot-msg { align-self: flex-start; background: #f1f3f5; color: #333; padding: 12px 18px; border-radius: 18px 18px 18px 0; max-width: 80%; line-height: 1.5; }
-        .user-msg { align-self: flex-end; background: #0d6efd; color: white; padding: 12px 18px; border-radius: 18px 18px 0 18px; max-width: 80%; line-height: 1.5; }
 
-        /* Responsive */
+        .upload-area:hover {
+            background-color: #eef2ff;
+        }
+
+        .pdf-icon {
+            font-size: 60px;
+            color: #4318FF;
+            margin-bottom: 20px;
+        }
+
+        .upload-text-main {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: #2b3674;
+        }
+        
+        .browse-link {
+            color: #4318FF;
+            text-decoration: underline;
+            cursor: pointer;
+        }
+
+        .supported-text {
+            color: #a3aed0;
+            font-size: 0.9rem;
+            margin-bottom: 25px;
+        }
+
+        .language-wrapper {
+            margin-bottom: 20px;
+        }
+        #language-select {
+            padding: 10px 15px;
+            border: 1px solid #e0e5f2;
+            border-radius: 10px;
+            background: white;
+            color: #2b3674;
+            font-size: 0.9rem;
+            cursor: pointer;
+            width: auto;
+            min-width: 150px;
+        }
+
+        .upload-btn {
+            background: #4318FF;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 1rem;
+        }
+        .upload-btn:hover {
+            background: #3311dd;
+            transform: translateY(-2px);
+        }
+        .upload-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        #report-file {
+            display: none;
+        }
+
+        
+        #progress-container {
+            width: 60%;
+            height: 8px;
+            background: #e0e5f2;
+            border-radius: 10px;
+            margin-top: 20px;
+            overflow: hidden;
+            display: none;
+        }
+        #progress-bar {
+            height: 100%;
+            width: 0%;
+            background: #4318FF;
+            transition: width 0.3s;
+        }
+        #status-text {
+            margin-top: 10px;
+            color: #4318FF;
+            font-size: 0.9rem;
+            font-style: italic;
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .results-wrapper {
+            background: white;
+            padding: 30px;
+            border-radius: 20px;
+            box-shadow: 0 5px 20px rgba(0,0,0,0.02);
+        }
+
+        #gemini-output {
+            line-height: 1.8;
+            color: #2b3674;
+            margin-bottom: 20px;
+        }
+
+        #speak-btn {
+            background: #6f42c1;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+        #speak-btn:hover {
+            background: #5a32a3;
+        }
+
+        .chat-section {
+            margin-top: 30px;
+            padding-top: 30px;
+            border-top: 1px solid #e0e5f2;
+        }
+
+        #chat-window {
+            height: 300px;
+            overflow-y: auto;
+            background: #f9f9f9;
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 15px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .bot-msg {
+            background: white;
+            padding: 10px 15px;
+            border-radius: 12px 12px 12px 0;
+            max-width: 80%;
+            align-self: flex-start;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            line-height: 1.5;
+        }
+
+        .user-msg {
+            background: #4318FF;
+            color: white;
+            padding: 10px 15px;
+            border-radius: 12px 12px 0 12px;
+            max-width: 80%;
+            align-self: flex-end;
+            line-height: 1.5;
+        }
+
+        .chat-input-wrapper {
+            display: flex;
+            gap: 10px;
+        }
+        
+        #chat-input {
+            flex-grow: 1;
+            padding: 12px 15px;
+            border: 1px solid #e0e5f2;
+            border-radius: 10px;
+            font-size: 0.95rem;
+            outline: none;
+        }
+        
+        #send-chat-btn {
+            background: #3a86ff;
+            color: white;
+            border: none;
+            padding: 0 25px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+        }
+        #send-chat-btn:hover {
+            background: #3a86ff;
+        }
+
+        .view-btn {
+            background: #3a86ff;
+            color: white;
+            border: none;
+            padding: 4px 10px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            margin-top: 5px;
+            display: block;
+            width: 100%;
+        }
+        .view-btn:hover {
+            background: #3a86ff;
+        }
+
         @media (max-width: 900px) {
-            body { flex-direction: column; height: auto; }
-            .sidebar { width: 100%; border-right: none; border-bottom: 1px solid #ddd; height: auto; }
-            .sidebar-content { flex-direction: row; flex-wrap: wrap; gap: 20px; }
-            .sidebar-card { flex: 1; min-width: 250px; }
+            body { flex-direction: column; height: auto; overflow: auto; }
+            .sidebar { width: 100%; padding: 20px; }
+            .menu-list { flex-direction: row; overflow-x: auto; }
+            .stats-grid { grid-template-columns: 1fr; }
             .main-content { padding: 20px; }
+            .upload-area { min-height: 250px; }
         }
     </style>
 </head>
@@ -204,376 +536,144 @@
 
     <aside class="sidebar">
         <div class="brand">
-            <h2>🩸 Glucocare AI</h2>
+            <span class="brand-icon">🩸</span>
+            <h2>Glucocare AI</h2>
         </div>
 
-        <div class="sidebar-content">
-            <div class="sidebar-card user-info">
-                <h3>Account</h3>
-                <p id="user-display">Loading...</p>
-                <button onclick="logout()" class="logout-btn">Sign Out</button>
-            </div>
+        <ul class="menu-list">
+            <li class="menu-item active" id="dashboard-tab">
+                <span>🏠</span> Dashboard
+            </li>
+            <li class="menu-item" id="reports-tab">
+                <span>📄</span> Reports
+            </li>
+        </ul>
 
-            <div id="food-section" class="sidebar-card" style="border-left: 4px solid #ff9800;">
-                <h3 style="color:#e65100;">🍎 Food Scanner</h3>
-                <input type="file" id="food-file" accept="image/*" style="font-size: 0.8rem;" />
-                <button id="scan-food-btn" style="background-color: #ff9800; width: 100%; font-size: 0.9rem; padding: 8px;">Scan Food</button>
-                <div id="food-result" style="display: none; padding: 10px; background: #fff8e1; border-radius: 4px; margin-top: 10px; border: 1px solid #ffe0b2;"></div>
-            </div>
+        <div class="user-info-sidebar">
+            <p id="user-display">Loading...</p>
+        </div>
 
-            <div id="history-section" style="flex-grow: 1;">
-                <h3>Recent Reports</h3>
-                <ul id="history-list">
-                    <li style="text-align:center; color:#999; padding: 20px; font-size: 0.9rem;">Loading history...</li>
-                </ul>
-                
-                <div id="show-more-container" class="show-more-container" style="display: none;">
-                    <button id="show-more-history-btn" class="show-more-btn">
-                        Show More <span>▼</span>
-                    </button>
-                </div>
+        <div class="food-scanner-sidebar">
+            <h3>🎯 Food Scanner</h3>
+            <input type="file" id="food-file" accept="image/*" />
+            <button id="scan-food-btn">Scan Food</button>
+            <div id="food-result"></div>
+        </div>
+
+        <div class="history-sidebar">
+            <h3>📋 Recent Reports</h3>
+            <ul id="history-list">
+                <li style="text-align:center; color:rgba(255,255,255,0.5); padding: 10px; font-size: 0.8rem;">Loading history...</li>
+            </ul>
+        </div>
+
+        <div class="logout-wrapper">
+            <div class="menu-item" onclick="logout()">
+                <span>↪️</span> Logout
             </div>
         </div>
     </aside>
 
-
     <main class="main-content">
-        <div class="main-container">
+        
+        <header class="header">
+            <div class="welcome-text">
+                <h1>Welcome <span>👋</span></h1>
+            </div>
+            <div class="profile-actions">
+                <button class="icon-btn">🔔</button>
+                <div class="profile-pic">
+                    <img src="https://ui-avatars.com/api/?name=User&background=random" alt="Profile">
+                </div>
+            </div>
+        </header>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon bg-blue-light">💧</div>
+                <div class="stat-info">
+                    <h3>98 mg/dL</h3>
+                    <p>Avg. Glucose</p>
+                </div>
+            </div>
             
-            <div class="section" id="upload-section">
-                <h2 style="margin-top:0; color: #2c3e50;">🩺 New Health Checkup</h2>
-                <p style="color: #6c757d; margin-bottom: 25px;">Upload a clear photo of your blood test report. Our AI will analyze the metrics and provide personalized advice.</p>
-                
-                <div style="background: #fafafa; padding: 20px; border-radius: 10px; border: 2px dashed #ddd; text-align: center;">
-                    <input type="file" id="report-file" accept="image/*" style="margin-bottom: 0;" />
+            <div class="stat-card">
+                <div class="stat-icon bg-green-light">⚖️</div>
+                <div class="stat-info">
+                    <h3>72 kg</h3>
+                    <p>Weight</p>
                 </div>
-                
-                <div style="margin-top: 20px; display: flex; gap: 15px; align-items: center;">
-                    <div style="flex-grow: 1;">
-                        <label style="font-weight:bold; font-size: 0.9rem; color: #555;">Advice Language:</label>
-                        <select id="language-select" style="margin-bottom: 0; margin-top: 5px;">
-                            <option value="English">English</option>
-                            <option value="Hindi">Hindi</option>
-                            <option value="Spanish">Spanish</option>
-                        </select>
-                    </div>
-                    <button id="analyze-btn" style="flex-grow: 2; height: 100%; margin-top: 22px;">🔍 Analyze Report</button>
+            </div>
+
+            <div class="stat-card">
+                <div class="stat-icon bg-orange-light">❤️</div>
+                <div class="stat-info">
+                    <h3>120/80</h3>
+                    <p>Blood Pressure</p>
                 </div>
+            </div>
+        </div>
+
+        <div class="upload-container" id="upload-section">
+            <div class="section-title">
+                <span>☁️</span> Upload Blood Report
+            </div>
+
+            <div class="upload-area" onclick="document.getElementById('report-file').click()">
+                <input type="file" id="report-file" accept="image/*, .pdf">
                 
+                <div class="pdf-icon">📄</div>
+                <p class="upload-text-main">Drag & drop your report here</p>
+                <p style="margin-bottom: 10px; color: #a3aed0;">or <span class="browse-link">Browse Files</span></p>
+                <p class="supported-text">Supported formats: PDF, JPG, PNG</p>
+                
+                <div class="language-wrapper" onclick="event.stopPropagation()">
+                    <label style="font-size: 0.9rem; color: #2b3674; margin-right: 10px;">Language:</label>
+                    <select id="language-select">
+                        <option value="English">English</option>
+                        <option value="Hindi">Hindi</option>
+                        <option value="Spanish">Spanish</option>
+                    </select>
+                </div>
+
+                <button id="analyze-btn" class="upload-btn" onclick="event.stopPropagation()">📊 Analyze Report</button>
+
                 <div id="progress-container">
                     <div id="progress-bar"></div>
                 </div>
                 <p id="status-text"></p>
             </div>
+        </div>
 
-            <div class="section hidden" id="result-section">
-                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid #eee; padding-bottom: 15px; margin-bottom: 25px;">
-                    <h3 style="margin: 0; color: #2c3e50;">📋 Analysis Report</h3>
-                    <button id="speak-btn" style="background-color: #6f42c1; font-size: 0.9em; padding: 8px 16px; border-radius: 20px; display: flex; align-items: center; gap: 8px;">
-                        <span>🔊</span> Listen
-                    </button>
-                </div>
-                
-                <div id="gemini-output" style="line-height: 1.8; color: #444;"></div>
-                
-                <div style="margin-top: 30px; text-align: center;">
-                    <button onclick="window.location.reload()" style="background:#6c757d; font-size: 0.9rem;">Upload Another Report</button>
-                </div>
+        <div id="result-section" class="results-wrapper hidden">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                <div class="section-title" style="margin-bottom: 0;">📋 Analysis Report</div>
+                <button id="speak-btn">
+                    <span>🔊</span> Listen
+                </button>
             </div>
-
-            <div class="section hidden" id="chat-section">
-                <h3 style="margin-top:0; color: #2c3e50;">💬 Chat with Glucocare AI</h3>
-                <p style="color:#777; font-size:0.9em; margin-bottom: 20px;">Have questions about your report? Ask Dr. AI below.</p>
-                
+            
+            <div id="gemini-output"></div>
+            
+            <div class="chat-section" id="chat-section">
+                <div class="section-title" style="font-size: 1rem;">💬 Ask about your report</div>
                 <div id="chat-window">
                     <div class="bot-msg">Hello! I have analyzed your report. What would you like to know?</div>
                 </div>
-
-                <div style="display: flex; gap: 10px;">
-                    <input type="text" id="chat-input" placeholder="Type your question..." style="flex-grow: 1; padding: 15px; border: 1px solid #ddd; border-radius: 8px; font-size: 1rem;" />
-                    <button id="send-chat-btn" style="width: auto; padding: 0 25px;">Send</button>
+                <div class="chat-input-wrapper">
+                    <input type="text" id="chat-input" placeholder="Type your question...">
+                    <button id="send-chat-btn">Send</button>
                 </div>
             </div>
 
+            <div style="text-align: center; margin-top: 30px;">
+                <button onclick="window.location.reload()" style="background:#6c757d; padding: 12px 30px; border: none; border-radius: 10px; color: white; cursor: pointer; font-weight: 600;">Upload Another Report</button>
+            </div>
         </div>
+
     </main>
 
-    <script type="module">
-        import { auth } from './js/firebase-config.js';
-        import { onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { analyzeBloodReport, getChatResponse, analyzeFood } from './js/gemini.js';
-        import { saveReportToHistory, getUserHistory } from './js/db.js';
+    <script type="module" src="./js/app.js"></script>
 
-        let currentUser = null;
-        let currentReportContext = ""; 
-
-        // --- 1. AUTH STATE ---
-        onAuthStateChanged(auth, (user) => {
-            if (user) {
-                currentUser = user;
-                document.getElementById('user-display').innerText = user.email;
-                refreshHistory(user.uid);
-            } else {
-                window.location.href = "index.html"; 
-            }
-        });
-
-        window.logout = async () => {
-            await signOut(auth);
-            window.location.href = "index.html";
-        };
-
-        // --- 2. REPORT ANALYSIS LOGIC ---
-        const analyzeBtn = document.getElementById('analyze-btn');
-        if(analyzeBtn) {
-            analyzeBtn.addEventListener('click', async () => {
-                const fileInput = document.getElementById('report-file');
-                const lang = document.getElementById('language-select').value;
-                const statusText = document.getElementById('status-text');
-                const progressBar = document.getElementById('progress-bar');
-                const progressContainer = document.getElementById('progress-container');
-                const resultSection = document.getElementById('result-section');
-                const chatSection = document.getElementById('chat-section');
-
-                if(fileInput.files.length === 0) return alert("Please select a file!");
-                const file = fileInput.files[0];
-
-                progressContainer.style.display = 'block';
-                progressBar.style.width = '10%';
-                statusText.innerText = "Initializing...";
-                resultSection.classList.add('hidden');
-                chatSection.classList.add('hidden');
-                
-                try {
-                    // A. OCR
-                    statusText.innerText = "Reading document text (OCR)...";
-                    progressBar.style.width = "40%";
-                    const worker = await Tesseract.createWorker('eng');
-                    const ret = await worker.recognize(file);
-                    const ocrText = ret.data.text;
-                    await worker.terminate();
-
-                    currentReportContext = ocrText;
-                    if(!ocrText || ocrText.length < 5) throw new Error("Image too blurry. Please try again.");
-
-                    // B. Analysis
-                    statusText.innerText = "AI is analyzing medical data...";
-                    progressBar.style.width = "70%";
-                    const aiResponseHTML = await analyzeBloodReport(ocrText, lang);
-
-                    // C. Save
-                    statusText.innerText = "Saving to secure history...";
-                    progressBar.style.width = "90%";
-                    await saveReportToHistory(currentUser.uid, {
-                        fileName: file.name,
-                        language: lang,
-                        ocrTextSnippet: ocrText.substring(0, 100),
-                        analysisResult: aiResponseHTML
-                    });
-
-                    // D. Display
-                    progressBar.style.width = "100%";
-                    statusText.innerText = "Analysis Complete!";
-                    document.getElementById('gemini-output').innerHTML = aiResponseHTML;
-                    resultSection.classList.remove('hidden');
-                    chatSection.classList.remove('hidden');
-                    refreshHistory(currentUser.uid);
-
-                } catch (error) {
-                    console.error(error);
-                    statusText.innerText = "Error: " + error.message;
-                    statusText.style.color = "#dc3545";
-                    progressBar.style.backgroundColor = "#dc3545";
-                }
-            });
-        }
-
-        // --- 3. CHATBOT LOGIC ---
-        const chatBtn = document.getElementById('send-chat-btn');
-        if(chatBtn) {
-            chatBtn.addEventListener('click', async () => {
-                const input = document.getElementById('chat-input');
-                const chatWindow = document.getElementById('chat-window');
-                const userMsg = input.value.trim();
-
-                if (!userMsg) return;
-
-                // User Msg
-                const userDiv = document.createElement('div');
-                userDiv.className = 'user-msg';
-                userDiv.innerText = userMsg;
-                chatWindow.appendChild(userDiv);
-                
-                input.value = "";
-                chatWindow.scrollTop = chatWindow.scrollHeight;
-
-                // Thinking Msg
-                const thinkingDiv = document.createElement('div');
-                thinkingDiv.className = 'bot-msg';
-                thinkingDiv.innerText = "Thinking...";
-                thinkingDiv.style.fontStyle = "italic";
-                thinkingDiv.style.color = "#888";
-                chatWindow.appendChild(thinkingDiv);
-                chatWindow.scrollTop = chatWindow.scrollHeight;
-
-                try {
-                    const aiResponse = await getChatResponse(userMsg, currentReportContext);
-                    thinkingDiv.innerText = aiResponse; // Replace thinking
-                    thinkingDiv.style.fontStyle = "normal";
-                    thinkingDiv.style.color = "#333";
-                } catch (err) {
-                    thinkingDiv.innerText = "Error connecting to AI.";
-                    thinkingDiv.style.color = "red";
-                }
-                chatWindow.scrollTop = chatWindow.scrollHeight;
-            });
-        }
-
-        // --- 4. FOOD SCANNER LOGIC ---
-        const scanFoodBtn = document.getElementById('scan-food-btn');
-        if (scanFoodBtn) {
-            scanFoodBtn.addEventListener('click', async () => {
-                const fileInput = document.getElementById('food-file');
-                const resultDiv = document.getElementById('food-result');
-
-                if (fileInput.files.length === 0) return alert("Select a food image!");
-                const file = fileInput.files[0];
-
-                scanFoodBtn.innerText = "Scanning...";
-                scanFoodBtn.disabled = true;
-                resultDiv.style.display = 'block';
-                resultDiv.innerHTML = "🔍 Analyzing food...";
-
-                try {
-                    const base64String = await fileToBase64(file);
-                    const aiResponse = await analyzeFood(base64String);
-                    resultDiv.innerHTML = aiResponse;
-                } catch (error) {
-                    resultDiv.innerHTML = `<p style="color:red; margin:0;">Error: ${error.message}</p>`;
-                } finally {
-                    scanFoodBtn.innerText = "Scan Food";
-                    scanFoodBtn.disabled = false;
-                }
-            });
-        }
-
-        // --- 5. VOICE ASSISTANT ---
-        const speakBtn = document.getElementById('speak-btn');
-        let isSpeaking = false;
-
-        if (speakBtn) {
-            speakBtn.addEventListener('click', () => {
-                const resultText = document.getElementById('gemini-output').innerText;
-                
-                if (!resultText) return alert("No analysis to read yet!");
-
-                if (isSpeaking) {
-                    window.speechSynthesis.cancel();
-                    speakBtn.innerHTML = "<span>🔊</span> Listen";
-                    isSpeaking = false;
-                    return;
-                }
-
-                const speech = new SpeechSynthesisUtterance(resultText);
-                const selectedLang = document.getElementById('language-select').value;
-                if (selectedLang === "Hindi") speech.lang = 'hi-IN';
-                else if (selectedLang === "Spanish") speech.lang = 'es-ES';
-                else speech.lang = 'en-US';
-
-                speakBtn.innerHTML = "<span>🔇</span> Stop";
-                isSpeaking = true;
-
-                speech.onend = () => {
-                    speakBtn.innerHTML = "<span>🔊</span> Listen";
-                    isSpeaking = false;
-                };
-
-                window.speechSynthesis.speak(speech);
-            });
-        }
-
-        // --- HELPERS ---
-        function fileToBase64(file) {
-            return new Promise((resolve, reject) => {
-                const reader = new FileReader();
-                reader.readAsDataURL(file);
-                reader.onload = () => resolve(reader.result.split(',')[1]);
-                reader.onerror = error => reject(error);
-            });
-        }
-
-        // --- UPDATED HISTORY LOGIC WITH SHOW MORE/LESS ---
-        async function refreshHistory(uid) {
-            const list = document.getElementById('history-list');
-            const showMoreContainer = document.getElementById('show-more-container');
-            const showMoreBtn = document.getElementById('show-more-history-btn');
-            
-            list.innerHTML = "<li style='padding:20px; text-align:center;'>Loading...</li>";
-            const history = await getUserHistory(uid);
-            list.innerHTML = ""; 
-
-            if(history.length === 0) {
-                list.innerHTML = "<li style='padding:20px; text-align:center; color:#999;'>No history found.</li>";
-                showMoreContainer.style.display = 'none';
-                return;
-            }
-
-            const INITIAL_COUNT = 3;
-
-            history.forEach((report, index) => {
-                const li = document.createElement('li');
-                li.className = 'history-item'; 
-                
-                // Mark items beyond the initial count as extra
-                if (index >= INITIAL_COUNT) {
-                    li.style.display = 'none'; // Initially hidden
-                    li.classList.add('extra-history-item');
-                }
-                
-                const dateStr = report.createdAt ? report.createdAt.toDate().toLocaleDateString() : "Recent";
-                
-                li.innerHTML = `
-                    <div class="file-icon">📄</div>
-                    <div class="file-info">
-                        <span class="file-name">${report.fileName}</span>
-                        <span class="file-date">${dateStr}</span>
-                    </div>
-                    <div class="action-icon">›</div>
-                `;
-                
-                li.addEventListener('click', () => {
-                    document.getElementById('gemini-output').innerHTML = report.analysisResult;
-                    document.getElementById('result-section').classList.remove('hidden');
-                    document.getElementById('chat-section').classList.remove('hidden'); 
-                    document.getElementById('result-section').scrollIntoView({ behavior: 'smooth' });
-                });
-                list.appendChild(li);
-            });
-
-            // Toggle Logic for Show More / Show Less
-            if (history.length > INITIAL_COUNT) {
-                showMoreContainer.style.display = 'block';
-                // Reset text to initial state
-                showMoreBtn.innerHTML = 'Show More <span>▼</span>';
-                
-                showMoreBtn.onclick = () => {
-                    const extraItems = document.querySelectorAll('.extra-history-item');
-                    const isExpanded = showMoreBtn.innerHTML.includes('Less');
-                    
-                    if (isExpanded) {
-                        // Action: COLLAPSE
-                        extraItems.forEach(item => item.style.display = 'none');
-                        showMoreBtn.innerHTML = 'Show More <span>▼</span>';
-                    } else {
-                        // Action: EXPAND
-                        extraItems.forEach(item => item.style.display = 'flex');
-                        showMoreBtn.innerHTML = 'Show Less <span>▲</span>';
-                    }
-                };
-            } else {
-                showMoreContainer.style.display = 'none';
-            }
-        }
-    </script>
 </body>
 </html>
