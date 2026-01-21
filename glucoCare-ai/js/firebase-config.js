@@ -5,12 +5,12 @@ import { getFirestore } from "https://www.gstatic.com/firebasejs/10.7.1/firebase
 
 const firebaseConfig = {
   // YOUR FIREBASE CONFIG KEYS HERE
-  apiKey: "AIzaSyBJxpMlNjTO135euVsPtFm-mUePSgwatWs",
-  authDomain: "glucocare-24dc6.firebaseapp.com",
-  projectId: "glucocare-24dc6",
-  storageBucket: "glucocare-24dc6.firebasestorage.app",
-  messagingSenderId: "714247159932",
-  appId: "1:714247159932:web:29428d10ab39e5a8de89f9"
+  apiKey: "AIzaSyBJxpMXXXXXXXXXXXXXXXXXX",
+  authDomain: "glucocareXXXXXXXXXXXX",
+  projectId: "glucocarXXXXXXXXXX",
+  storageBucket: "glucocareXXXXXXXXXXXXXXXXXX",
+  messagingSenderId: "714XXXXXXXXXXXX",
+  appId: "1:714247159XXXXXXXXXXXXXXXXXXXXX"
 };
 
 const app = initializeApp(firebaseConfig);

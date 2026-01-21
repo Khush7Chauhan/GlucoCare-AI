@@ -3,8 +3,8 @@
 
 function uploadFileToS3(file) {
   AWS.config.update({
-    accessKeyId: 'AKIAZF6P4MZGMGFWZ4EX',
-    secretAccessKey: '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',
+    accessKeyId: 'AKIXXXXXXXXXXXXXX',
+    secretAccessKey: 'Fm3VOcc0BwFXXXXXXXXXXXXXXXXXXX',
     region: 'ap-south-1'
 
   });

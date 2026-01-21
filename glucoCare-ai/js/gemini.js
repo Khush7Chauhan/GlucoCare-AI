@@ -3,7 +3,7 @@
 // ======================================================
 
 // YOUR API KEY
-const API_KEY = "AIzaSyCU8reXf_8AuqHMx47nNcTCtmJeI9K6Uys";
+const API_KEY = "AIzaSyAx6_lUpbH4h5aXXXXXXXXXXXXXXXXX";
 
 // 🔧 EXACT MODEL NAME FROM YOUR SCREENSHOT
 const MODEL_NAME = "gemini-2.5-flash"; 
